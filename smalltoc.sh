@@ -3,11 +3,12 @@
 INSTALL_PATH="/usr/bin/smalltoc"
 
 generate_toc() {
+
+    [ -e $1 ] && echo "Generating TOC for $1:\n" && printf "## Table of content\n" 
+
     before=2
 
-    printf "## Table of content\n"
-
-    while read -r line
+    while IFS= read -r line
     do
         line=$(echo "$line" | grep -E "#{2,}[[:space:]][[:alnum:]]")
         after=$(echo "$line" | cut -d ' ' -f 1 | tr -d "[:space:]" | wc -m)
@@ -26,25 +27,13 @@ generate_toc() {
             done
             printf "%s [%s](#%s)\n" "-" "$text" "$link"
         }
-    done
+    done < $1
 }
 
-case $1 in
-    '')
-        generate_toc
-        ;;
-    'install' | 'add')
-        (set -x; sudo cp "$0" $INSTALL_PATH)
-        ;;
-    'uninstall' | 'remove')
-        (set -x; sudo rm -i $INSTALL_PATH)
-        ;;
-    '-h' | '--help')
-        echo "smalltoc - Lightweight Table of content genrator
+show_help() {
+    echo "smalltoc - Lightweight Table of content genrator
         Usage:
             smalltoc [Options]
-
-            NOTE: The script is meant to read from pipe!
 
             OPTIONS
 
@@ -52,9 +41,23 @@ case $1 in
 
             uninstall/remove - remove script from \$PATH
 
-            -h/--help - show help"
+            -h/--help - show help and exit"
+    exit
+}
+
+[ $# -eq 0 ] && echo "No arguments given\n"
+
+case $1 in
+    '' | '-h' | '--help')
+        show_help
+        ;;
+    'install' | 'add')
+        (set -x; sudo cp "$0" $INSTALL_PATH)
+        ;;
+    'uninstall' | 'remove')
+        (set -x; sudo rm -i $INSTALL_PATH)
         ;;
     *)
-        echo "Wrong arguments given: $1"
+        for arg in "$@"; do generate_toc $arg; done
         ;;
 esac
