@@ -4,34 +4,32 @@ INSTALL_PATH="/usr/bin/smalltoc"
 
 generate_toc() {
 
-    [ -e $1 ] && echo "Generating TOC for $1:\n" && printf "## Table of content\n" 
-
-    before=2
+    [ -e "$1" ] && printf "Generating TOC for %s:\n" "$1" && printf "## Table of content\n"
 
     while IFS= read -r line
     do
         line=$(echo "$line" | grep -E "#{2,}[[:space:]][[:alnum:]]")
-        after=$(echo "$line" | cut -d ' ' -f 1 | tr -d "[:space:]" | wc -m)
 
         [ -z "$line" ] && continue
 
         text=$(echo "$line" | cut -d ' ' -f 1 --complement)
-        link=$(echo "$text" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+        link=$(echo "$text" | xargs | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+        num_tabs=$(echo "$line" | cut -d ' ' -f 1 | tr -d "[:space:]" | wc -m)
 
-        {
-            i=2
-            while [ $i -lt "$after" ]; do
-                printf "%b" "\t"
+        i=0
+        num_tabs=$((num_tabs - 2))
 
-                i=$((i + 1))
-            done
-            printf "%s [%s](#%s)\n" "-" "$text" "$link"
-        }
-    done < $1
+        while [ $i -lt "$num_tabs" ]; do
+            printf "%s" "    "
+            i=$((i + 1))
+        done
+
+        printf "%s [%s](#%s)\n" "-" "$text" "$link"
+    done < "$1"
 }
 
 show_help() {
-    echo "smalltoc - Lightweight Table of content genrator
+    echo "smalltoc - Lightweight Table-of-Content genrator
         Usage:
             smalltoc [Options]
 
@@ -45,7 +43,7 @@ show_help() {
     exit
 }
 
-[ $# -eq 0 ] && echo "No arguments given\n"
+[ $# -eq 0 ] && printf "No arguments given\n"
 
 case $1 in
     '' | '-h' | '--help')
@@ -58,6 +56,6 @@ case $1 in
         (set -x; sudo rm -i $INSTALL_PATH)
         ;;
     *)
-        for arg in "$@"; do generate_toc $arg; done
+        for arg in "$@"; do generate_toc "$arg"; done
         ;;
 esac
