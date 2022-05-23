@@ -1,5 +1,7 @@
 # SMALL TOC
 
+![Logo](./logo.svg)
+
 A lightweit table-of-content generator for Markdown
 
 ## Table of content
