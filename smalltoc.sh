@@ -3,14 +3,13 @@
 INSTALL_PATH="/usr/bin/smalltoc"
 
 generate_toc() {
-
-    [ -e "$1" ] && printf "Generating TOC for %s:\n" "$1" && printf "## Table of content\n"
-
     while IFS= read -r line
     do
         line=$(echo "$line" | grep -E "#{2,}[[:space:]][[:alnum:]]")
 
         [ -z "$line" ] && continue
+
+        [ "$(echo "$line" | grep -Ei '##[[:space:]]*table[[:space:]]*of[[:space:]]*content.*')" ] && continue
 
         text=$(echo "$line" | cut -d ' ' -f 1 --complement)
         link=$(echo "$text" | xargs | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
@@ -28,10 +27,42 @@ generate_toc() {
     done < "$1"
 }
 
+parse_args() {
+    for arg in "$@"
+        do
+        [ -e "$1" ] && printf "Generating TOC for %s:\n" "$1"
+
+        OUTPUT_DIR="$HOME/.cache/smalltoc"
+        OUTPUT_FILE="$OUTPUT_DIR/README.md"
+        mkdir -p "$OUTPUT_DIR"
+
+        toc="## Table of Content\n$(generate_toc "$arg")"
+
+        htwos="$( cat $arg | grep -nim 2 '##' )"
+        htwos_num="$( echo "$htwos" | wc -l )"
+
+        a=$(echo "$htwos" | head -1)
+        b=$(echo "$htwos" | tail -1)
+
+        [ "$(echo "$a" | grep -Ei 'table[[:space:]]*of[[:space:]]*content.*' )" ] || b="$a"
+
+        a="$(echo "$a" | cut -d : -f 1 )"
+        b="$(echo "$b" | cut -d : -f 1 )"
+
+        head -"$(( a - 1 ))" "$arg" > "$OUTPUT_FILE"
+
+        echo "\n$toc\n" >> "$OUTPUT_FILE"
+
+        tail -n +"$b" "$arg" >> "$OUTPUT_FILE"
+
+        printf "The file is saved in %s" "$OUTPUT_FILE"
+    done
+}
+
 show_help() {
     echo "smalltoc - Lightweight Table-of-Content genrator
         Usage:
-            smalltoc [Options]
+            smalltoc [Options] [file1] [file2] [...]
 
             OPTIONS
 
@@ -56,6 +87,6 @@ case $1 in
         (set -x; sudo rm -i $INSTALL_PATH)
         ;;
     *)
-        for arg in "$@"; do generate_toc "$arg"; done
+        parse_args $@
         ;;
 esac
