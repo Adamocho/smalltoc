@@ -38,14 +38,14 @@ parse_args() {
 
         printf "The file is saved in %s\n" "$OUTPUT_FILE"
 
-        toc="## Table of Content$(generate_toc "$arg")"
-        htwos="$( cat $arg | grep -Enim 2 '#{2,}' | tr -d "[:space:]" )"
-        htwos_num="$( cat $arg | grep -Enim 2 '#{2,}' | wc -l )"
+        toc="$( printf "## Table of Content\n%s" "$(generate_toc "$arg")" )"
+        htwos="$( grep -Enim 2 '#{2,}' "$arg" )"
+        htwos_num="$( grep -Enim 2 -c '#{2,}' "$arg" )"
 
-        if [ $htwos_num -eq 0 ]
+        if [ "$htwos_num" -eq 0 ]
         then
             cat "$arg" > "$OUTPUT_FILE"
-            echo "\n$toc" >> "$OUTPUT_FILE"
+            printf "\n%s" "$toc" >> "$OUTPUT_FILE"
             continue
         fi
 
@@ -59,9 +59,10 @@ parse_args() {
 
         head -"$(( a - 1 ))" "$arg" > "$OUTPUT_FILE"
 
-        echo "\n$toc\n" >> "$OUTPUT_FILE"
+        printf "\n%s\n\n" "$toc" >> "$OUTPUT_FILE"
 
         tail -n +"$b" "$arg" >> "$OUTPUT_FILE"
+
     done
 }
 
@@ -93,6 +94,6 @@ case $1 in
         (set -x; sudo rm -i $INSTALL_PATH)
         ;;
     *)
-        parse_args $@
+        parse_args "$@"
         ;;
 esac
