@@ -34,12 +34,12 @@ Get the whole git tree
 git clone https://github.com/Adamocho/smalltoc.git
 ```
 
-Get the latest version (shallow clone)
+Get the latest code only (git shallow clone)
 ```sh
 git clone --depth 1 https://github.com/Adamocho/smalltoc.git
 ```
 
-Now `cd` inside and install it using
+Now `cd` inside and install it using the `install` option
 
 > You may need execute permission.  
 > For that use: `[sudo] chmod +x FILENAME`
@@ -47,18 +47,13 @@ Now `cd` inside and install it using
 ```sh
 ./smalltoc.sh install
 ```
-**OR**
-```sh
-./smalltoc.sh add
-```
-Those two are equivalent
 
 ## Uninstalling
 
-Simply use `uninstall` or `remove`, which are, as before, equivalent
+Simply use `uninstall`
 
 ```sh
-smalltoc uninstall #OR remove
+smalltoc uninstall
 ```
 
 ## Usage

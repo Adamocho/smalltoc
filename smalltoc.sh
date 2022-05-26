@@ -36,10 +36,18 @@ parse_args() {
         OUTPUT_FILE="$OUTPUT_DIR/README.md"
         mkdir -p "$OUTPUT_DIR"
 
-        toc="## Table of Content\n$(generate_toc "$arg")"
+        printf "The file is saved in %s\n" "$OUTPUT_FILE"
 
-        htwos="$( cat $arg | grep -nim 2 '##' )"
-        htwos_num="$( echo "$htwos" | wc -l )"
+        toc="## Table of Content$(generate_toc "$arg")"
+        htwos="$( cat $arg | grep -Enim 2 '#{2,}' | tr -d "[:space:]" )"
+        htwos_num="$( cat $arg | grep -Enim 2 '#{2,}' | wc -l )"
+
+        if [ $htwos_num -eq 0 ]
+        then
+            cat "$arg" > "$OUTPUT_FILE"
+            echo "\n$toc" >> "$OUTPUT_FILE"
+            continue
+        fi
 
         a=$(echo "$htwos" | head -1)
         b=$(echo "$htwos" | tail -1)
@@ -54,8 +62,6 @@ parse_args() {
         echo "\n$toc\n" >> "$OUTPUT_FILE"
 
         tail -n +"$b" "$arg" >> "$OUTPUT_FILE"
-
-        printf "The file is saved in %s" "$OUTPUT_FILE"
     done
 }
 
@@ -66,9 +72,9 @@ show_help() {
 
             OPTIONS
 
-            install/add - add script to \$PATH
+            install - add script to \$PATH
 
-            uninstall/remove - remove script from \$PATH
+            uninstall - remove script from \$PATH
 
             -h/--help - show help and exit"
     exit
@@ -80,10 +86,10 @@ case $1 in
     '' | '-h' | '--help')
         show_help
         ;;
-    'install' | 'add')
+    'install')
         (set -x; sudo cp "$0" $INSTALL_PATH)
         ;;
-    'uninstall' | 'remove')
+    'uninstall')
         (set -x; sudo rm -i $INSTALL_PATH)
         ;;
     *)
