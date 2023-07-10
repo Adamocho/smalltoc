@@ -7,34 +7,34 @@ OUTPUT_FILE="$OUTPUT_DIR/README.md"
 # Stdout is captured by 'parse_args' function
 generate_toc() {
     # Search for lines starting with two (or more) '#' hashtags
-    lines=$( cat "$1" | grep -E "#{2,}[[:space:]][[:alnum:]]" )
+    lines=$( grep -E "#{2,}[[:space:]][[:alnum:]]" "$1" )
 
     # Create temp file for this (in order for the while loop below to work).
     # It is faster than going line-by-line for the whole file anyway.
-    temp_file=$( mktemp tmp.XXXX -p "${TMP_DIR}")
+    temp_file=$( mktemp tmp.XXXX -p "$TMP_DIR" )
 
-    printf "$lines" > "$temp_file"
+    printf "%s" "$lines" > "$temp_file"
 
     # Saddly this is the correct syntax for this mess
     # Just remember - one can't put a '$' sign before either 'lines' nor 'line'.
-    while lines= read -r line
+    while lines="" read -r line
     do
         # Skip, if it contains 'Table of Content' (case insensitive)
-        [ "$(echo "$line" | grep -Ei '##[[:space:]]*table[[:space:]]*of[[:space:]]*content.*')" ] && continue
+        [ "$( echo "$line" | grep -Ei '##[[:space:]]*table[[:space:]]*of[[:space:]]*content.*' )" ] && continue
 
         # Get text for link (basically copy the header without hashtags)
-        text_part=$(echo "$line" | cut -d ' ' -f 1 --complement)
+        text_part=$( echo "$line" | cut -d ' ' -f 1 --complement )
        
         # Get the link part, which looks like: (example-section)
-        link_part=$(echo "$text_part" | xargs | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+        link_part=$( echo "$text_part" | xargs | tr ' ' '-' | tr '[:upper:]' '[:lower:]' )
 
         # Calculate the number of tabulators...
-        number_of_tabs=$(echo "$line" | cut -d ' ' -f 1 | tr -d "[:space:]" | wc -m)
-        tabs_iterator=0
+        number_of_tabs=$( echo "$line" | cut -d ' ' -f 1 | tr -d "[:space:]" | wc -m )
         number_of_tabs=$(( $number_of_tabs - 2 ))
+        tabs_iterator=0
 
         # ...and shift the line that many times
-        while [ $tabs_iterator -lt "$number_of_tabs" ]; do
+        while [ "$tabs_iterator" -lt "$number_of_tabs" ]; do
             # Add tabulator (\t didn't work for some reason)
             printf "%s" "    "
             tabs_iterator=$(( $tabs_iterator + 1 ))
@@ -75,13 +75,13 @@ parse_args() {
         fi
 
         # Locate where to put TOC in
-        top_part=$(echo "$hashtag_twice" | head -1)
-        bottom_part=$(echo "$hashtag_twice" | tail -1)
+        top_part=$( echo "$hashtag_twice" | head -1 )
+        bottom_part=$( echo "$hashtag_twice" | tail -1 )
 
-        [ "$(echo "$top_part" | grep -Ei 'table[[:space:]]*of[[:space:]]*content.*' )" ] || bottom_part="$top_part"
+        [ "$( echo "$top_part" | grep -Ei 'table[[:space:]]*of[[:space:]]*content.*' )" ] || bottom_part="$top_part"
 
-        top_part=$(echo "$top_part" | cut -d : -f 1 )
-        bottom_part=$(echo "$bottom_part" | cut -d : -f 1 )
+        top_part=$( echo "$top_part" | cut -d : -f 1 )
+        bottom_part=$( echo "$bottom_part" | cut -d : -f 1 )
 
         # Merge TOC into file
         # Start
@@ -118,10 +118,10 @@ case $1 in
         show_help
         ;;
     'install')
-        (set -x; sudo cp "$0" $INSTALL_PATH)
+        (set -x; sudo cp "$0" "$INSTALL_PATH")
         ;;
     'uninstall')
-        (set -x; sudo rm -i $INSTALL_PATH)
+        (set -x; sudo rm -i "$INSTALL_PATH")
         ;;
     *)
         parse_args "$@"
