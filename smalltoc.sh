@@ -48,13 +48,20 @@ generate_toc() {
 }
 
 parse_args() {
+    # Keep track of the number of files
+    files_iterator=0
+
+    # Create the directory if needed (no error otherwise).
+    mkdir -p "$OUTPUT_DIR"
+
     # Generate TOC for each file given.
     for file in "$@"
         do
+        # Proceed if the file exists.
         [ -e "$1" ] && printf "Generating TOC for %s:\n" "$1"
 
-        # Create the directory if needed (no error otherwise).
-        mkdir -p "$OUTPUT_DIR"
+        # Increment per file - change filenames.
+        files_iterator=$(( $files_iterator + 1 ))
 
         # Generate the ToC for the current file.
         table_of_content=$( printf "## Table of Content\n%s" "$(generate_toc "$file")" )
@@ -82,6 +89,10 @@ parse_args() {
 
         top_part=$( echo "$top_part" | cut -d : -f 1 )
         bottom_part=$( echo "$bottom_part" | cut -d : -f 1 )
+
+        [ $files_iterator -gt 1 ] && {
+            OUTPUT_FILE="$OUTPUT_FILE($files_iterator)"
+        }
 
         # Merge TOC into file
         # Start
